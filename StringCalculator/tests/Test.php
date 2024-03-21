@@ -25,11 +25,7 @@ class Test extends TestCase
 
     public function testOnAnyNumberShouldReturnsTheSum()
     {
-        $n_times_dicing = random_int(5,10);
-        $numbers = array();
-        for ($i=0; $i<$n_times_dicing; $i++){
-            $numbers[] = random_int(0,50);
-        }
+        $numbers = $this->getRandomIntArray();
         $sum = array_reduce($numbers, fn ($i,$c) => $i+$c, 0);
         $string = implode( ',', $numbers);
 
@@ -37,8 +33,64 @@ class Test extends TestCase
         $this->assertEquals($sum, $result, sprintf("La somme devrait être de %d.", $sum));
     }
 
-    public function testOnAnySeparatorWhichIsNotDigitShouldReturnTheSum()
+    public function testOnNewLineSeparatedStringShouldReturnTheSum()
     {
+        $numbers = $this->getRandomIntArray();
+        $sum = array_reduce($numbers, fn ($i,$c) => $i+$c, 0);
+        $string = implode( "\n", $numbers);
 
+        $result = \NoiaKTas\StringCalculator\StringCalculator::compute($string);
+        $this->assertEquals($sum, $result, sprintf("La somme devrait être de %d.", $sum));
+    }
+
+    public function testOnRandomNewLineOrCommaSeparatedStringShouldReturnTheSum()
+    {
+        $numbers = $this->getRandomIntArray();
+        $sum = array_reduce($numbers, fn ($i,$c) => $i+$c, 0);
+        $string = array_reduce( $numbers,
+            fn($number,$carry) => (
+                sprintf("%s%s%s",$carry, (1===random_int(1,2)?",":"\n"),$number)),
+            ''
+        );
+
+        $result = \NoiaKTas\StringCalculator\StringCalculator::compute($string);
+        $this->assertEquals($sum, $result, sprintf("La somme devrait être de %d.", $sum));
+    }
+
+    public function testParametricSeparatorStringShouldReturnTheSum()
+    {
+        $numbers = $this->getRandomIntArray();
+        $sum = array_reduce($numbers, fn ($i,$c) => $i+$c, 0);
+        $separator = "'";
+        $start = "\\\\'\n";
+        $string = implode( $separator, $numbers);
+        $string = $start . $string;
+
+
+        $result = \NoiaKTas\StringCalculator\StringCalculator::compute($string);
+        $this->assertEquals($sum, $result, sprintf("La somme devrait être de %d.", $sum));
+    }
+
+    public function testCallingAddWithNegativeNumberShouldThrowAnException()
+    {
+        $numbers = $this->getRandomIntArray();
+        $numbers[] = -3;
+        $string = implode(',',$numbers);
+
+        $this->expectException(\Exception::class);
+        \NoiaKTas\StringCalculator\StringCalculator::compute($string);
+
+    }
+
+
+    private function getRandomIntArray()
+    {
+        $n_times_dicing = random_int(5,10);
+        $numbers = array();
+        for ($i=0; $i<$n_times_dicing; $i++){
+            $numbers[] = random_int(0,50);
+        }
+
+        return $numbers;
     }
 }
